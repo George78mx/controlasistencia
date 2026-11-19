@@ -1,0 +1,17 @@
+# Protege el proyecto cuando la carpeta queda dentro del DocumentRoot de Apache
+# (p. ej. C:\xampp\htdocs\controlasistencia). Todo se envía a public/; nada fuera
+# de public/ (como .env, vendor o storage) se puede descargar.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(public/)?\. - [F,L]
+    RewriteCond %{REQUEST_URI} !/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+<IfModule !mod_rewrite.c>
+    Require all denied
+</IfModule>
+
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
