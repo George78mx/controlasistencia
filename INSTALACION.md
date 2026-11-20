@@ -115,14 +115,18 @@ git push -u origin main
 En el servidor (primera vez), dentro de la carpeta web:
 
 ```bash
-git clone git@github.com:USUARIO/controlasistencia.git
+git clone https://github.com/George78mx/controlasistencia.git
 cd controlasistencia
 composer install --no-dev --optimize-autoloader
 cp .env.example .env        # y edita BD, APP_URL, APP_ENV=production, APP_DEBUG=false, APP_TIMEZONE
 php artisan key:generate
 php artisan migrate --seed --force
 php artisan storage:link
+php artisan config:cache && php artisan view:cache
 ```
+
+Si la contraseña de MySQL lleva `$` u otros símbolos, escríbela entre comillas simples en `.env`:
+`DB_PASSWORD='clave$con$simbolos'`.
 
 - Linux: da permisos de escritura al servidor web en `storage/` y `bootstrap/cache/`
   (`chown -R www-data:www-data storage bootstrap/cache`) y agrega al cron:
@@ -135,8 +139,16 @@ Actualizaciones posteriores en el servidor:
 git pull
 composer install --no-dev --optimize-autoloader
 php artisan migrate --force
-php artisan optimize:clear && php artisan optimize
+php artisan optimize:clear
+php artisan config:cache && php artisan view:cache
 ```
+
+> **No uses `php artisan optimize` ni `php artisan route:cache`.** Con la plataforma en una
+> subcarpeta (`/controlasistencia`), la caché de rutas rompe la página principal con el error
+> *"The GET method is not supported for route /. Supported methods: HEAD"*. Si llegara a pasar:
+> `php artisan route:clear`.
+>
+> Cada vez que edites `.env` vuelve a correr `php artisan config:cache`.
 
 > Importante: `APP_KEY` cifra las contraseñas de los equipos guardadas en la base. Si cambias la
 > llave, vuelve a capturar la contraseña de cada equipo.
