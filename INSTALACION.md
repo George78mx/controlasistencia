@@ -143,10 +143,11 @@ php artisan optimize:clear
 php artisan config:cache && php artisan view:cache
 ```
 
-> **No uses `php artisan optimize` ni `php artisan route:cache`.** Con la plataforma en una
-> subcarpeta (`/controlasistencia`), la caché de rutas rompe la página principal con el error
-> *"The GET method is not supported for route /. Supported methods: HEAD"*. Si llegara a pasar:
-> `php artisan route:clear`.
+> **Caché de rutas deshabilitada.** Con la plataforma en una subcarpeta (`/controlasistencia`),
+> la caché de rutas rompe la página principal con el error *"The GET method is not supported
+> for route /. Supported methods: HEAD"*. Por eso el proyecto reemplaza `route:cache` por un
+> comando que solo la borra; `php artisan optimize` ya se puede usar sin problema. Si alguna vez
+> aparece ese error: `rm -f bootstrap/cache/routes-*.php`.
 >
 > Cada vez que edites `.env` vuelve a correr `php artisan config:cache`.
 
