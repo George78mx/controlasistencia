@@ -10,6 +10,7 @@ use App\Http\Controllers\DeviceController;
 use App\Http\Controllers\EmpleadoController;
 use App\Http\Controllers\HikvisionPushController;
 use App\Http\Controllers\HorarioController;
+use App\Http\Controllers\ImportacionEmpleadosController;
 use App\Http\Controllers\IncidenciaController;
 use App\Http\Controllers\PerfilController;
 use App\Http\Controllers\ReporteController;
@@ -54,6 +55,9 @@ Route::middleware('auth')->group(function () {
 
     // Empleados
     Route::middleware('permission:empleados.gestionar')->group(function () {
+        Route::get('empleados/importar', [ImportacionEmpleadosController::class, 'form'])->name('empleados.importar');
+        Route::post('empleados/importar', [ImportacionEmpleadosController::class, 'importar'])->name('empleados.importar.procesar');
+        Route::get('empleados/plantilla', [ImportacionEmpleadosController::class, 'plantilla'])->name('empleados.plantilla');
         Route::get('empleados/crear', [EmpleadoController::class, 'create'])->name('empleados.create');
         Route::post('empleados', [EmpleadoController::class, 'store'])->name('empleados.store');
         Route::get('empleados/{empleado}/editar', [EmpleadoController::class, 'edit'])->name('empleados.edit');

@@ -2,6 +2,7 @@
 @section('title', 'Empleados')
 @section('subtitle', 'Catálogo de personal. El No. de empleado debe ser igual al registrado en la terminal.')
 @section('actions')
+    @can('empleados.gestionar')<a href="{{ route('empleados.importar') }}" class="btn btn-light"><i class="bi bi-file-earmark-arrow-up me-1"></i>Importar</a>@endcan
     @can('empleados.gestionar')<a href="{{ route('empleados.create') }}" class="btn btn-primary"><i class="bi bi-person-plus me-1"></i>Nuevo empleado</a>@endcan
 @endsection
 @section('content')
