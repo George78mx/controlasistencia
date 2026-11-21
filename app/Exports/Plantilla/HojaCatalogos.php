@@ -6,6 +6,7 @@ use App\Models\Departamento;
 use App\Models\Device;
 use App\Models\Horario;
 use App\Models\Puesto;
+use App\Models\Sucursal;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithStyles;
@@ -23,6 +24,7 @@ class HojaCatalogos implements FromArray, WithTitle, ShouldAutoSize, WithStyles
             'puestos'       => Puesto::where('activo', true)->orderBy('nombre')->pluck('nombre')->all(),
             'horarios'      => Horario::where('activo', true)->orderBy('nombre')->pluck('nombre')->all(),
             'equipos'       => Device::orderBy('nombre')->pluck('nombre')->all(),
+            'sucursales'    => Sucursal::where('activo', true)->orderBy('nombre')->pluck('nombre')->all(),
         ];
     }
 
@@ -39,10 +41,10 @@ class HojaCatalogos implements FromArray, WithTitle, ShouldAutoSize, WithStyles
     public function array(): array
     {
         $l = self::listas();
-        $filas = [['Departamentos', 'Puestos', 'Horarios', 'Equipos']];
+        $filas = [['Departamentos', 'Puestos', 'Horarios', 'Equipos', 'Sucursales']];
         $n = max(1, ...array_values(array_map('count', $l)));
         for ($i = 0; $i < $n; $i++) {
-            $filas[] = [$l['departamentos'][$i] ?? null, $l['puestos'][$i] ?? null, $l['horarios'][$i] ?? null, $l['equipos'][$i] ?? null];
+            $filas[] = [$l['departamentos'][$i] ?? null, $l['puestos'][$i] ?? null, $l['horarios'][$i] ?? null, $l['equipos'][$i] ?? null, $l['sucursales'][$i] ?? null];
         }
         return $filas;
     }

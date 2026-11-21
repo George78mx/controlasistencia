@@ -17,8 +17,13 @@
     ];
 @endphp
 
-@if($sinHorario || $noRegistrados)
+@include('partials.filtro-equipos')
+
+@if($sinHorario || $noRegistrados || $sinSucursal)
 <div class="d-flex flex-column gap-2 mb-3">
+    @if($sinSucursal)
+        <div class="alert alert-warning mb-0 py-2"><i class="bi bi-shop me-2"></i><strong>{{ $sinSucursal }}</strong> empleado(s) activos no tienen sucursal asignada; no aparecerán al filtrar por sucursal. <a href="{{ route('empleados.index', ['sin_sucursal' => 1]) }}">Revisar</a></div>
+    @endif
     @if($sinHorario)
         <div class="alert alert-warning mb-0 py-2"><i class="bi bi-exclamation-circle me-2"></i><strong>{{ $sinHorario }}</strong> empleado(s) activos no tienen horario asignado; no se les pueden calcular retardos ni faltas. <a href="{{ route('empleados.index') }}">Revisar</a></div>
     @endif
@@ -41,6 +46,38 @@
     </div>
     @endforeach
 </div>
+
+@if($porSucursal->count() > 1)
+<div class="card mb-3">
+    <div class="card-header">Hoy por sucursal <span class="small fw-normal text-muted-2">Haz clic en una sucursal para consultarla</span></div>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead><tr><th>Sucursal</th><th class="text-end">Empleados</th><th class="text-end">Presentes</th><th class="text-end">Retardos</th><th class="text-end">Faltas</th><th class="text-end">Justificados</th><th class="text-end">Sin checar</th><th style="width:30%">Asistencia</th></tr></thead>
+            <tbody>
+            @foreach($porSucursal as $r)
+                @php $pct = $r->empleados && $r->presentes !== null ? round($r->presentes * 100 / $r->empleados) : null; @endphp
+                <tr>
+                    <td class="fw-semibold">
+                        @if($r->sucursal)
+                            <form method="POST" action="{{ route('sucursal.cambiar') }}" class="d-inline">@csrf<input type="hidden" name="sucursal_id" value="{{ $r->sucursal->id }}"><button class="btn btn-link p-0 fw-semibold text-reset text-decoration-none"><i class="bi bi-shop me-1 text-primary"></i>{{ $r->sucursal->nombre }}</button></form>
+                        @else
+                            <span class="text-muted-2">Sin sucursal</span>
+                        @endif
+                    </td>
+                    <td class="text-end">{{ $r->empleados }}</td>
+                    <td class="text-end text-success fw-semibold">{{ $r->presentes ?? '—' }}</td>
+                    <td class="text-end text-warning fw-semibold">{{ $r->retardos ?? '—' }}</td>
+                    <td class="text-end text-danger fw-semibold">{{ $r->faltas ?? '—' }}</td>
+                    <td class="text-end">{{ $r->justificados ?? '—' }}</td>
+                    <td class="text-end text-muted-2">{{ $r->pendientes ?? '—' }}</td>
+                    <td>@if($pct !== null)<div class="progress" style="height:8px" title="{{ $pct }}%"><div class="progress-bar bg-success" style="width:{{ $pct }}%"></div></div>@endif</td>
+                </tr>
+            @endforeach
+            </tbody>
+        </table>
+    </div>
+</div>
+@endif
 
 <div class="row g-3">
     <div class="col-xl-8">

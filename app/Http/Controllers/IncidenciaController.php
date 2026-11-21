@@ -6,6 +6,7 @@ use App\Models\Empleado;
 use App\Models\Incidencia;
 use App\Models\TipoIncidencia;
 use App\Services\CalculadoraAsistencia;
+use App\Support\SucursalActiva;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -15,6 +16,7 @@ class IncidenciaController extends Controller
     public function index(Request $request)
     {
         $incidencias = Incidencia::with(['empleado', 'tipo', 'usuario'])
+            ->deSucursal(SucursalActiva::id(), $request->integer('device_id') ?: null)
             ->when($request->tipo_incidencia_id, fn ($q, $v) => $q->where('tipo_incidencia_id', $v))
             ->when($request->q, fn ($q, $v) => $q->whereHas('empleado', fn ($q) => $q->buscar($v)))
             ->when($request->desde, fn ($q, $v) => $q->where('fecha_fin', '>=', $v))
@@ -80,7 +82,7 @@ class IncidenciaController extends Controller
     private function catalogos(): array
     {
         return [
-            'empleados' => Empleado::activos()->orderBy('nombre')->get(),
+            'empleados' => Empleado::activos()->deSucursal(SucursalActiva::id())->orderBy('nombre')->get(),
             'tipos' => TipoIncidencia::where('activo', true)->orderBy('nombre')->get(),
         ];
     }

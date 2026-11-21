@@ -33,6 +33,14 @@ class Asistencia extends Model
     ];
 
     public function empleado() { return $this->belongsTo(Empleado::class)->withTrashed(); }
+
+    /** Filtra por la sucursal y/o el equipo principal del empleado. */
+    public function scopeDeSucursal($q, $sucursalId = null, $deviceId = null)
+    {
+        if (!$sucursalId && !$deviceId) return $q;
+        return $q->whereIn('empleado_id', Empleado::withTrashed()->deSucursal($sucursalId, $deviceId)->select('id'));
+    }
+
     public function horario() { return $this->belongsTo(Horario::class); }
     public function incidencia() { return $this->belongsTo(Incidencia::class); }
 

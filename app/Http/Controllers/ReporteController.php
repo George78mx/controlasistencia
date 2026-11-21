@@ -10,6 +10,8 @@ use App\Models\Device;
 use App\Models\Empleado;
 use App\Models\Incidencia;
 use App\Models\Setting;
+use App\Models\Sucursal;
+use App\Support\SucursalActiva;
 use App\Models\TipoIncidencia;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -44,6 +46,8 @@ class ReporteController extends Controller
         $filtros = [
             'desde' => Carbon::parse($request->desde ?: now()->startOfMonth()->toDateString()),
             'hasta' => Carbon::parse($request->hasta ?: now()->toDateString()),
+            // Si el formulario no manda sucursal, se usa la elegida en la barra superior
+            'sucursal_id' => $request->has('sucursal_id') ? ($request->sucursal_id ?: null) : SucursalActiva::id(),
             'departamento_id' => $request->departamento_id,
             'device_id' => $request->device_id,
             'empleado_id' => $request->empleado_id,
@@ -76,8 +80,9 @@ class ReporteController extends Controller
 
         return view('reportes.ver', $datos + [
             'departamentos' => Departamento::orderBy('nombre')->get(),
-            'equipos' => Device::orderBy('nombre')->get(),
-            'empleados' => Empleado::withTrashed()->orderBy('nombre')->get(),
+            'sucursales' => Sucursal::orderBy('nombre')->get(),
+            'equipos' => Device::when($filtros['sucursal_id'], fn ($q, $s) => $q->where('sucursal_id', $s))->orderBy('nombre')->get(),
+            'empleados' => Empleado::withTrashed()->deSucursal($filtros['sucursal_id'])->orderBy('nombre')->get(),
             'tiposIncidencia' => TipoIncidencia::orderBy('nombre')->get(),
         ]);
     }
@@ -85,6 +90,7 @@ class ReporteController extends Controller
     private function empleadosQuery(array $f)
     {
         return Empleado::withTrashed()
+            ->when($f['sucursal_id'] ?? null, fn ($q, $v) => $q->where('sucursal_id', $v))
             ->when($f['departamento_id'], fn ($q, $v) => $q->where('departamento_id', $v))
             ->when($f['device_id'], fn ($q, $v) => $q->where('device_id', $v))
             ->when($f['empleado_id'], fn ($q, $v) => $q->whereKey($v));
@@ -172,9 +178,9 @@ class ReporteController extends Controller
     {
         $q = Checada::with(['empleado.departamento', 'device'])
             ->whereBetween('fecha_hora', [$f['desde']->copy()->startOfDay(), $f['hasta']->copy()->endOfDay()])
-            ->when($f['device_id'], fn ($q, $v) => $q->where('device_id', $v))
+            ->deSucursal($f['sucursal_id'], $f['device_id'])
             ->when($f['empleado_id'] || $f['departamento_id'], fn ($q) => $q->whereIn('empleado_id',
-                $this->empleadosQuery(array_merge($f, ['device_id' => null]))->select('id')))
+                $this->empleadosQuery(array_merge($f, ['device_id' => null, 'sucursal_id' => null]))->select('id')))
             ->orderBy('fecha_hora');
         $total = (clone $q)->count();
         return ['registros' => $q->limit(20000)->get(), 'total' => $total];
@@ -183,6 +189,7 @@ class ReporteController extends Controller
     private function filtroTexto(array $f): string
     {
         $t = [];
+        if ($f['sucursal_id']) $t[] = 'Sucursal: '.Sucursal::find($f['sucursal_id'])?->nombre;
         if ($f['departamento_id']) $t[] = 'Departamento: '.Departamento::find($f['departamento_id'])?->nombre;
         if ($f['device_id']) $t[] = 'Equipo: '.Device::find($f['device_id'])?->nombre;
         if ($f['empleado_id']) $t[] = 'Empleado: '.Empleado::withTrashed()->find($f['empleado_id'])?->nombre_completo;

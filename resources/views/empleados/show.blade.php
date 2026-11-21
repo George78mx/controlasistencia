@@ -25,7 +25,7 @@
                         'RFC' => $empleado->rfc, 'CURP' => $empleado->curp, 'NSS' => $empleado->nss,
                         'Nacimiento' => $empleado->fecha_nacimiento?->format('d/m/Y'), 'Correo' => $empleado->email, 'Teléfono' => $empleado->telefono,
                         'Dirección' => $empleado->direccion, 'Ingreso' => $empleado->fecha_ingreso?->format('d/m/Y'), 'Baja' => $empleado->fecha_baja?->format('d/m/Y'),
-                        'Equipo' => $empleado->device?->nombre, 'Emergencia' => trim($empleado->contacto_emergencia.' '.$empleado->telefono_emergencia),
+                        'Sucursal' => $empleado->sucursal?->nombre, 'Equipo' => $empleado->device?->nombre, 'Emergencia' => trim($empleado->contacto_emergencia.' '.$empleado->telefono_emergencia),
                     ] as $k => $val)
                         <dt class="col-4 text-muted-2 fw-normal">{{ $k }}</dt><dd class="col-8 text-break">{{ $val ?: '—' }}</dd>
                     @endforeach

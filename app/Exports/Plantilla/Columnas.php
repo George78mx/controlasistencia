@@ -22,6 +22,7 @@ class Columnas
         'departamento'        => ['departamento', false, 20, 'Nombre exacto del catálogo (hoja Catálogos).'],
         'puesto'              => ['puesto', false, 20, 'Nombre exacto del catálogo (hoja Catálogos).'],
         'horario'             => ['horario', false, 28, 'Nombre exacto del horario. Necesario para calcular retardos y faltas.'],
+        'sucursal'            => ['sucursal', false, 20, 'Nombre de la sucursal. Si la dejas vacía, toma la del equipo.'],
         'equipo'              => ['equipo', false, 18, 'Nombre del equipo principal.'],
         'fecha_ingreso'       => ['fecha_ingreso', false, 14, 'dd/mm/aaaa'],
         'fecha_baja'          => ['fecha_baja', false, 14, 'dd/mm/aaaa. Déjala vacía si sigue laborando.'],

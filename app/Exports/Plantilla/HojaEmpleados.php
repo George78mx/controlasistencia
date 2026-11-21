@@ -7,6 +7,7 @@ use App\Models\Device;
 use App\Models\Empleado;
 use App\Models\Horario;
 use App\Models\Puesto;
+use App\Models\Sucursal;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithTitle;
@@ -31,12 +32,12 @@ class HojaEmpleados implements FromArray, WithTitle, WithEvents
         $filas = [array_map(fn ($c) => $c[0], Columnas::LISTA)];
 
         if ($this->incluirEmpleados) {
-            $empleados = Empleado::with(['departamento', 'puesto', 'horario', 'device'])->orderBy('numero_empleado')->get();
+            $empleados = Empleado::with(['departamento', 'puesto', 'horario', 'device', 'sucursal'])->orderBy('numero_empleado')->get();
             foreach ($empleados as $e) {
                 $filas[] = [
                     $e->numero_empleado, $e->nombre, $e->apellido_paterno, $e->apellido_materno, $e->rfc, $e->curp, $e->nss,
                     $e->fecha_nacimiento?->format('d/m/Y'), $e->genero, $e->email, $e->telefono, $e->direccion,
-                    $e->departamento?->nombre, $e->puesto?->nombre, $e->horario?->nombre, $e->device?->nombre,
+                    $e->departamento?->nombre, $e->puesto?->nombre, $e->horario?->nombre, $e->sucursal?->nombre, $e->device?->nombre,
                     $e->fecha_ingreso?->format('d/m/Y'), $e->fecha_baja?->format('d/m/Y'), $e->activo ? 'SI' : 'NO',
                     $e->contacto_emergencia, $e->telefono_emergencia, $e->notas,
                 ];
@@ -46,7 +47,7 @@ class HojaEmpleados implements FromArray, WithTitle, WithEvents
                 '1001', 'Ana María', 'López', 'Ruiz', 'LORA900101AB1', 'LORA900101MJCPZN09', '01234567890',
                 '01/01/1990', 'F', 'ana.lopez@empresa.com', '3312345678', 'Av. Principal 123, Guadalajara',
                 Departamento::orderBy('nombre')->value('nombre'), Puesto::orderBy('nombre')->value('nombre'),
-                Horario::orderBy('nombre')->value('nombre'), Device::orderBy('nombre')->value('nombre'),
+                Horario::orderBy('nombre')->value('nombre'), Sucursal::orderBy('nombre')->value('nombre'), Device::orderBy('nombre')->value('nombre'),
                 now()->format('d/m/Y'), '', 'SI', 'Juan López', '3398765432', 'Fila de ejemplo: bórrala antes de importar',
             ];
         }
@@ -88,6 +89,7 @@ class HojaEmpleados implements FromArray, WithTitle, WithEvents
                     'puesto'       => "'Catálogos'!\$B\$2:\$B\$".max(2, HojaCatalogos::cuenta('puestos') + 1),
                     'horario'      => "'Catálogos'!\$C\$2:\$C\$".max(2, HojaCatalogos::cuenta('horarios') + 1),
                     'equipo'       => "'Catálogos'!\$D\$2:\$D\$".max(2, HojaCatalogos::cuenta('equipos') + 1),
+                    'sucursal'     => "'Catálogos'!\$E\$2:\$E\$".max(2, HojaCatalogos::cuenta('sucursales') + 1),
                     'genero'       => '"M,F,X"',
                     'activo'       => '"SI,NO"',
                 ];

@@ -11,7 +11,7 @@ class Empleado extends Model
 
     protected $fillable = [
         'numero_empleado', 'nombre', 'apellido_paterno', 'apellido_materno', 'rfc', 'curp', 'nss',
-        'fecha_nacimiento', 'genero', 'email', 'telefono', 'direccion', 'departamento_id', 'puesto_id',
+        'fecha_nacimiento', 'genero', 'email', 'telefono', 'direccion', 'departamento_id', 'sucursal_id', 'puesto_id',
         'horario_id', 'device_id', 'fecha_ingreso', 'fecha_baja', 'activo', 'contacto_emergencia',
         'telefono_emergencia', 'foto', 'notas',
     ];
@@ -33,6 +33,7 @@ class Empleado extends Model
     }
 
     public function departamento() { return $this->belongsTo(Departamento::class); }
+    public function sucursal() { return $this->belongsTo(Sucursal::class); }
     public function puesto() { return $this->belongsTo(Puesto::class); }
     public function horario() { return $this->belongsTo(Horario::class); }
     public function device() { return $this->belongsTo(Device::class); }
@@ -56,6 +57,13 @@ class Empleado extends Model
     }
 
     public function scopeActivos($q) { return $q->where('activo', true); }
+
+    /** Filtra por sucursal y/o equipo principal (null = sin filtro). */
+    public function scopeDeSucursal($q, $sucursalId = null, $deviceId = null)
+    {
+        return $q->when($sucursalId, fn ($q) => $q->where('sucursal_id', $sucursalId))
+                 ->when($deviceId, fn ($q) => $q->where('device_id', $deviceId));
+    }
 
     public function scopeBuscar($q, ?string $texto)
     {

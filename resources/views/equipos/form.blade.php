@@ -9,7 +9,11 @@
                 <div class="card-header">Datos del equipo</div>
                 <div class="card-body row g-3">
                     <div class="col-md-6"><label class="form-label">Nombre *</label><input name="nombre" value="{{ old('nombre', $equipo->nombre) }}" class="form-control" placeholder="Ej. Acceso principal" required></div>
-                    <div class="col-md-6"><label class="form-label">Ubicación / sucursal</label><input name="ubicacion" value="{{ old('ubicacion', $equipo->ubicacion) }}" class="form-control"></div>
+                    <div class="col-md-6"><label class="form-label">Sucursal</label>
+                        <select name="sucursal_id" class="form-select"><option value="">—</option>
+                            @foreach($sucursales as $s)<option value="{{ $s->id }}" @selected(old('sucursal_id', $equipo->sucursal_id) == $s->id)>{{ $s->nombre }}</option>@endforeach</select>
+                        @can('catalogos.gestionar')<div class="form-text"><a href="{{ route('catalogos.index', 'sucursales') }}">Administrar sucursales</a></div>@endcan</div>
+                    <div class="col-md-12"><label class="form-label">Ubicación (dirección, área)</label><input name="ubicacion" value="{{ old('ubicacion', $equipo->ubicacion) }}" class="form-control"></div>
                     <div class="col-md-5"><label class="form-label">IP en la VPN *</label><input name="ip" value="{{ old('ip', $equipo->ip) }}" class="form-control mono" placeholder="10.0.1.20" required></div>
                     <div class="col-md-3"><label class="form-label">Puerto *</label><input type="number" name="puerto" value="{{ old('puerto', $equipo->puerto) }}" class="form-control" required></div>
                     <div class="col-md-4 d-flex align-items-end"><div class="form-check form-switch mb-2">

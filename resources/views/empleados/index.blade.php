@@ -6,6 +6,7 @@
     @can('empleados.gestionar')<a href="{{ route('empleados.create') }}" class="btn btn-primary"><i class="bi bi-person-plus me-1"></i>Nuevo empleado</a>@endcan
 @endsection
 @section('content')
+@include('partials.filtro-equipos')
 <form class="filters row g-2 align-items-end">
     <div class="col-md-4"><label class="form-label">Buscar</label><input name="q" value="{{ request('q') }}" class="form-control" placeholder="Nombre, número, RFC o CURP"></div>
     <div class="col-md-3"><label class="form-label">Departamento</label>
@@ -14,7 +15,7 @@
         </select></div>
     <div class="col-md-2"><label class="form-label">Equipo</label>
         <select name="device_id" class="form-select"><option value="">Todos</option>
-            @foreach($equipos as $d)<option value="{{ $d->id }}" @selected(request('device_id') == $d->id)>{{ $d->nombre }}</option>@endforeach
+            @foreach($equipos->when(\App\Support\SucursalActiva::id(), fn ($c, $s) => $c->where('sucursal_id', $s)) as $d)<option value="{{ $d->id }}" @selected(request('device_id') == $d->id)>{{ $d->nombre }}</option>@endforeach
         </select></div>
     <div class="col-md-2"><label class="form-label">Estado</label>
         <select name="estado" class="form-select">
@@ -26,7 +27,7 @@
 <div class="card">
     <div class="table-responsive">
         <table class="table table-hover">
-            <thead><tr><th>Empleado</th><th>No.</th><th>Departamento / Puesto</th><th>Horario</th><th>Equipo</th><th>Ingreso</th><th>Estado</th><th></th></tr></thead>
+            <thead><tr><th>Empleado</th><th>No.</th><th>Departamento / Puesto</th><th>Horario</th><th>Sucursal / Equipo</th><th>Ingreso</th><th>Estado</th><th></th></tr></thead>
             <tbody>
             @forelse($empleados as $e)
                 <tr>
@@ -36,7 +37,7 @@
                     <td class="mono">{{ $e->numero_empleado }}</td>
                     <td>{{ $e->departamento?->nombre ?? '—' }}<br><span class="small text-muted-2">{{ $e->puesto?->nombre }}</span></td>
                     <td>{!! $e->horario ? e($e->horario->nombre) : '<span class="badge-soft soft-warning">Sin horario</span>' !!}</td>
-                    <td>{{ $e->device?->nombre ?? '—' }}</td>
+                    <td>{!! $e->sucursal ? e($e->sucursal->nombre) : '<span class="badge-soft soft-warning">Sin sucursal</span>' !!}<br><span class="small text-muted-2">{{ $e->device?->nombre }}</span></td>
                     <td class="text-nowrap">{{ $e->fecha_ingreso?->format('d/m/Y') ?? '—' }}</td>
                     <td><span class="badge-soft soft-{{ $e->activo ? 'success' : 'secondary' }}">{{ $e->activo ? 'Activo' : 'Inactivo' }}</span></td>
                     <td class="text-end text-nowrap">

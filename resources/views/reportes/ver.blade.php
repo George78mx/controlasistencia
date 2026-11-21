@@ -10,6 +10,7 @@
 @endsection
 @section('content')
 <form class="filters row g-2 align-items-end">
+    @if($tipo === 'kardex')<input type="hidden" name="sucursal_id" value="{{ $filtros['sucursal_id'] }}">@endif
     <div class="col-md-2"><label class="form-label">Desde</label><input type="date" name="desde" value="{{ $filtros['desde']->toDateString() }}" class="form-control"></div>
     <div class="col-md-2"><label class="form-label">Hasta</label><input type="date" name="hasta" value="{{ $filtros['hasta']->toDateString() }}" class="form-control"></div>
     @if($tipo === 'kardex')
@@ -17,6 +18,9 @@
             <select name="empleado_id" class="form-select" required><option value="">Selecciona…</option>
                 @foreach($empleados as $e)<option value="{{ $e->id }}" @selected($filtros['empleado_id'] == $e->id)>{{ $e->nombre_completo }} (#{{ $e->numero_empleado }}){{ $e->trashed() ? ' — eliminado' : '' }}</option>@endforeach</select></div>
     @else
+        <div class="col-md-2"><label class="form-label">Sucursal</label>
+            <select name="sucursal_id" class="form-select" onchange="this.form.device_id && (this.form.device_id.value=''); this.form.empleado_id && (this.form.empleado_id.value=''); this.form.submit()"><option value="">Todas</option>
+                @foreach($sucursales as $s)<option value="{{ $s->id }}" @selected($filtros['sucursal_id'] == $s->id)>{{ $s->nombre }}</option>@endforeach</select></div>
         <div class="col-md-2"><label class="form-label">Departamento</label>
             <select name="departamento_id" class="form-select"><option value="">Todos</option>
                 @foreach($departamentos as $d)<option value="{{ $d->id }}" @selected($filtros['departamento_id'] == $d->id)>{{ $d->nombre }}</option>@endforeach</select></div>

@@ -15,6 +15,13 @@ class Checada extends Model
     ];
 
     public function device() { return $this->belongsTo(Device::class); }
+
+    /** Filtra por el equipo donde se checó, o por los equipos de una sucursal. */
+    public function scopeDeSucursal($q, $sucursalId = null, $deviceId = null)
+    {
+        return $q->when($deviceId, fn ($q) => $q->where('device_id', $deviceId))
+                 ->when($sucursalId && !$deviceId, fn ($q) => $q->whereIn('device_id', Device::where('sucursal_id', $sucursalId)->select('id')));
+    }
     public function empleado() { return $this->belongsTo(Empleado::class); }
 
     public function getTipoTextoAttribute(): string

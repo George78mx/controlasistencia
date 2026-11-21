@@ -14,7 +14,7 @@
                     <div class="icon soft-primary rounded-3 d-grid" style="width:48px;height:48px;place-items:center;font-size:1.4rem"><i class="bi bi-person-bounding-box"></i></div>
                     <div class="flex-grow-1">
                         <a href="{{ route('equipos.show', $eq) }}" class="fw-bold fs-6 text-reset text-decoration-none">{{ $eq->nombre }}</a>
-                        <div class="small text-muted-2">{{ $eq->ubicacion ?: 'Sin ubicación' }}</div>
+                        <div class="small text-muted-2"><i class="bi bi-shop"></i> {{ $eq->sucursal?->nombre ?? 'Sin sucursal' }}{{ $eq->ubicacion ? ' · '.$eq->ubicacion : '' }}</div>
                     </div>
                     @if(!$eq->activo)
                         <span class="badge-soft soft-secondary">Inactivo</span>

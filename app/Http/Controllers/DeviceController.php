@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Device;
 use App\Models\Empleado;
+use App\Models\Sucursal;
 use App\Services\HikvisionClient;
+use App\Support\SucursalActiva;
 use App\Services\SincronizadorChecadas;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -16,6 +18,7 @@ class DeviceController extends Controller
     public function index()
     {
         $equipos = Device::withCount(['checadas', 'checadas as checadas_hoy_count' => fn ($q) => $q->whereDate('fecha_hora', today())])
+            ->with('sucursal')->when(SucursalActiva::id(), fn ($q, $s) => $q->where('sucursal_id', $s))
             ->orderBy('nombre')->get();
         return view('equipos.index', compact('equipos'));
     }
@@ -32,7 +35,8 @@ class DeviceController extends Controller
 
     public function create()
     {
-        return view('equipos.form', ['equipo' => new Device(['puerto' => 80, 'activo' => true, 'usuario' => 'admin'])]);
+        return view('equipos.form', ['equipo' => new Device(['puerto' => 80, 'activo' => true, 'usuario' => 'admin', 'sucursal_id' => SucursalActiva::id()]),
+            'sucursales' => Sucursal::where('activo', true)->orderBy('nombre')->get()]);
     }
 
     public function store(Request $request)
@@ -43,15 +47,25 @@ class DeviceController extends Controller
 
     public function edit(Device $equipo)
     {
-        return view('equipos.form', compact('equipo'));
+        return view('equipos.form', ['equipo' => $equipo, 'sucursales' => Sucursal::orderBy('nombre')->get()]);
     }
 
     public function update(Request $request, Device $equipo)
     {
         $data = $this->validar($request, false);
         if (empty($data['password'])) unset($data['password']);
+        $sucursalAnterior = $equipo->sucursal_id;
         $equipo->update($data);
-        return redirect()->route('equipos.show', $equipo)->with('ok', 'Equipo actualizado.');
+
+        $msg = 'Equipo actualizado.';
+        if ($sucursalAnterior != $equipo->sucursal_id && $equipo->sucursal_id) {
+            // Los empleados de este equipo que seguían en la sucursal anterior (o sin sucursal) pasan a la nueva
+            $n = Empleado::where('device_id', $equipo->id)
+                ->where(fn ($q) => $q->whereNull('sucursal_id')->when($sucursalAnterior, fn ($q) => $q->orWhere('sucursal_id', $sucursalAnterior)))
+                ->update(['sucursal_id' => $equipo->sucursal_id]);
+            if ($n) $msg .= " Se movieron $n empleados a la nueva sucursal.";
+        }
+        return redirect()->route('equipos.show', $equipo)->with('ok', $msg);
     }
 
     public function destroy(Device $equipo)
@@ -143,6 +157,7 @@ class DeviceController extends Controller
                 'apellido_paterno' => array_shift($partes),
                 'apellido_materno' => $partes ? implode(' ', $partes) : null,
                 'device_id' => $equipo->id,
+                'sucursal_id' => $equipo->sucursal_id,
                 'activo' => true,
             ]);
             $n++;
@@ -153,6 +168,7 @@ class DeviceController extends Controller
     private function validar(Request $request, bool $nuevo): array
     {
         $data = $request->validate([
+            'sucursal_id' => ['nullable', 'exists:sucursales,id'],
             'nombre' => ['required', 'string', 'max:100'],
             'ubicacion' => ['nullable', 'string', 'max:150'],
             'ip' => ['required', 'string', 'max:100'],

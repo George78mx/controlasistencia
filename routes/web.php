@@ -15,6 +15,7 @@ use App\Http\Controllers\IncidenciaController;
 use App\Http\Controllers\PerfilController;
 use App\Http\Controllers\ReporteController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SucursalActivaController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -30,6 +31,7 @@ Route::middleware('auth')->group(function () {
     Route::post('logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
+    Route::post('sucursal-activa', [SucursalActivaController::class, 'cambiar'])->name('sucursal.cambiar');
     Route::get('perfil', [PerfilController::class, 'edit'])->name('perfil');
     Route::put('perfil', [PerfilController::class, 'update'])->name('perfil.update');
 

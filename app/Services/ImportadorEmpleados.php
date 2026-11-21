@@ -8,6 +8,7 @@ use App\Models\Device;
 use App\Models\Empleado;
 use App\Models\Horario;
 use App\Models\Puesto;
+use App\Models\Sucursal;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -25,6 +26,7 @@ use Throwable;
 class ImportadorEmpleados
 {
     private array $catalogos = [];
+    private array $sucursalDeEquipo = [];
     private array $porCrear = ['departamento' => [], 'puesto' => []];
 
     public function __construct(private CalculadoraAsistencia $calculadora) {}
@@ -189,7 +191,7 @@ class ImportadorEmpleados
             $datos['activo'] = !isset($datos['fecha_baja']);
         }
 
-        foreach (['departamento' => 'departamento_id', 'puesto' => 'puesto_id', 'horario' => 'horario_id', 'equipo' => 'device_id'] as $c => $campo) {
+        foreach (['departamento' => 'departamento_id', 'puesto' => 'puesto_id', 'horario' => 'horario_id', 'sucursal' => 'sucursal_id', 'equipo' => 'device_id'] as $c => $campo) {
             if ($d[$c] === null) continue;
             $id = $this->catalogos[$c][$this->clave($d[$c])] ?? null;
             if ($id) {
@@ -200,6 +202,12 @@ class ImportadorEmpleados
             } else {
                 $errores[] = ucfirst($c)." «{$d[$c]}» no existe en el catálogo.";
             }
+        }
+
+        // Sin sucursal en el archivo: se toma la del equipo (si el empleado no tenía una)
+        if (empty($datos['sucursal_id']) && !empty($datos['device_id']) && !$existente?->sucursal_id) {
+            $suc = $this->sucursalDeEquipo[$datos['device_id']] ?? null;
+            if ($suc) $datos['sucursal_id'] = $suc;
         }
 
         if (!$errores && !$existente && empty($datos['horario_id'])) {
@@ -283,7 +291,9 @@ class ImportadorEmpleados
             'puesto' => $mapa(Puesto::query()),
             'horario' => $mapa(Horario::query()),
             'equipo' => $mapa(Device::query()),
+            'sucursal' => $mapa(Sucursal::query()),
         ];
+        $this->sucursalDeEquipo = Device::pluck('sucursal_id', 'id')->all();
     }
 
     private function resumen(array $filas): array

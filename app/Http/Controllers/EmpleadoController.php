@@ -8,7 +8,9 @@ use App\Models\Device;
 use App\Models\Empleado;
 use App\Models\Horario;
 use App\Models\Puesto;
+use App\Models\Sucursal;
 use App\Services\CalculadoraAsistencia;
+use App\Support\SucursalActiva;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -18,10 +20,11 @@ class EmpleadoController extends Controller
 {
     public function index(Request $request)
     {
-        $empleados = Empleado::with(['departamento', 'puesto', 'horario', 'device'])
+        $empleados = Empleado::with(['departamento', 'puesto', 'horario', 'device', 'sucursal'])
             ->buscar($request->q)
+            ->deSucursal(SucursalActiva::id(), $request->integer('device_id') ?: null)
+            ->when($request->boolean('sin_sucursal'), fn ($q) => $q->whereNull('sucursal_id'))
             ->when($request->departamento_id, fn ($q, $v) => $q->where('departamento_id', $v))
-            ->when($request->device_id, fn ($q, $v) => $q->where('device_id', $v))
             ->when($request->estado !== 'todos', fn ($q) => $q->where('activo', $request->estado !== 'inactivos'))
             ->orderBy('nombre')->orderBy('apellido_paterno')
             ->paginate(20)->withQueryString();
@@ -37,7 +40,7 @@ class EmpleadoController extends Controller
             ->whereBetween('fecha', [$desde->toDateString(), $hasta->toDateString()])->orderByDesc('fecha')->get();
 
         return view('empleados.show', [
-            'empleado' => $empleado->load(['departamento', 'puesto', 'horario.dias', 'device']),
+            'empleado' => $empleado->load(['departamento', 'puesto', 'horario.dias', 'device', 'sucursal']),
             'asistencias' => $asistencias,
             'resumen' => $asistencias->countBy('estatus'),
             'desde' => $desde, 'hasta' => $hasta,
@@ -48,7 +51,7 @@ class EmpleadoController extends Controller
 
     public function create()
     {
-        return view('empleados.form', $this->catalogos() + ['empleado' => new Empleado(['activo' => true, 'fecha_ingreso' => now()])]);
+        return view('empleados.form', $this->catalogos() + ['empleado' => new Empleado(['activo' => true, 'fecha_ingreso' => now(), 'sucursal_id' => SucursalActiva::id()])]);
     }
 
     public function store(Request $request, CalculadoraAsistencia $calc)
@@ -91,7 +94,8 @@ class EmpleadoController extends Controller
             'departamentos' => Departamento::where('activo', true)->orderBy('nombre')->get(),
             'puestos' => Puesto::where('activo', true)->orderBy('nombre')->get(),
             'horarios' => Horario::where('activo', true)->orderBy('nombre')->get(),
-            'equipos' => Device::orderBy('nombre')->get(),
+            'equipos' => Device::with('sucursal')->orderBy('nombre')->get(),
+            'sucursales' => Sucursal::where('activo', true)->orderBy('nombre')->get(),
         ];
     }
 
@@ -111,6 +115,7 @@ class EmpleadoController extends Controller
             'telefono' => ['nullable', 'string', 'max:20'],
             'direccion' => ['nullable', 'string', 'max:255'],
             'departamento_id' => ['nullable', 'exists:departamentos,id'],
+            'sucursal_id' => ['nullable', 'exists:sucursales,id'],
             'puesto_id' => ['nullable', 'exists:puestos,id'],
             'horario_id' => ['nullable', 'exists:horarios,id'],
             'device_id' => ['nullable', 'exists:devices,id'],
@@ -126,6 +131,10 @@ class EmpleadoController extends Controller
 
         foreach (['rfc', 'curp'] as $c) if (!empty($data[$c])) $data[$c] = mb_strtoupper($data[$c]);
         $data['activo'] = $request->boolean('activo');
+        // Si no se eligió sucursal, toma la del equipo principal
+        if (empty($data['sucursal_id']) && !empty($data['device_id'])) {
+            $data['sucursal_id'] = Device::whereKey($data['device_id'])->value('sucursal_id');
+        }
 
         if ($request->hasFile('foto')) {
             if ($empleado?->foto) Storage::disk('public')->delete($empleado->foto);

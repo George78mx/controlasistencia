@@ -26,6 +26,7 @@
             ['empleados.index', 'Empleados', 'people', 'empleados.ver', 'empleados.*'],
             ['equipos.index', 'Equipos', 'hdd-network', 'equipos.ver', 'equipos.*'],
             ['horarios.index', 'Horarios', 'clock-history', 'catalogos.gestionar', 'horarios.*'],
+            [['catalogos.index', 'sucursales'], 'Sucursales', 'shop', 'catalogos.gestionar', 'catalogos/sucursales'],
             [['catalogos.index', 'departamentos'], 'Departamentos', 'diagram-3', 'catalogos.gestionar', 'catalogos/departamentos'],
             [['catalogos.index', 'puestos'], 'Puestos', 'briefcase', 'catalogos.gestionar', 'catalogos/puestos'],
             [['catalogos.index', 'tipos-incidencia'], 'Tipos de incidencia', 'tags', 'catalogos.gestionar', 'catalogos/tipos-incidencia'],
@@ -76,8 +77,22 @@
         <button class="btn btn-light d-lg-none" onclick="document.getElementById('sidebar').classList.toggle('show')"><i class="bi bi-list"></i></button>
         <div class="flex-grow-1">
             <h1>@yield('title', 'Inicio')</h1>
-            @hasSection('subtitle')<div class="text-muted-2 small">@yield('subtitle')</div>@endif
+            @hasSection('subtitle')<div class="text-muted-2 small">@yield('subtitle')@if($sucursalActiva) · <span class="text-primary fw-semibold"><i class="bi bi-shop"></i> {{ $sucursalActiva->nombre }}</span>@endif</div>@elseif($sucursalActiva)<div class="small text-primary fw-semibold"><i class="bi bi-shop"></i> {{ $sucursalActiva->nombre }}</div>@endif
         </div>
+        @if($sucursalesMenu->count())
+        <div class="dropdown">
+            <button class="btn {{ $sucursalActiva ? 'btn-primary' : 'btn-light' }} dropdown-toggle" data-bs-toggle="dropdown" title="Sucursal">
+                <i class="bi bi-shop me-1"></i><span class="d-none d-md-inline">{{ $sucursalActiva?->nombre ?? 'Todas las sucursales' }}</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow">
+                <li><h6 class="dropdown-header">Consultar sucursal</h6></li>
+                <li><form method="POST" action="{{ route('sucursal.cambiar') }}">@csrf<button class="dropdown-item {{ $sucursalActiva ? '' : 'active' }}">Todas las sucursales</button></form></li>
+                @foreach($sucursalesMenu as $s)
+                    <li><form method="POST" action="{{ route('sucursal.cambiar') }}">@csrf<input type="hidden" name="sucursal_id" value="{{ $s->id }}"><button class="dropdown-item {{ $sucursalActiva?->id === $s->id ? 'active' : '' }}">{{ $s->nombre }}</button></form></li>
+                @endforeach
+            </ul>
+        </div>
+        @endif
         <div class="d-flex gap-2 flex-wrap justify-content-end">@yield('actions')</div>
     </header>
     <main class="content">

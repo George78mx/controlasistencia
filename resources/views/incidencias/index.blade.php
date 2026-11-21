@@ -5,6 +5,7 @@
     @can('incidencias.gestionar')<a href="{{ route('incidencias.create') }}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Nueva incidencia</a>@endcan
 @endsection
 @section('content')
+@include('partials.filtro-equipos')
 <form class="filters row g-2 align-items-end">
     <div class="col-md-3"><label class="form-label">Empleado</label><input name="q" value="{{ request('q') }}" class="form-control"></div>
     <div class="col-md-3"><label class="form-label">Tipo</label>
@@ -12,6 +13,7 @@
             @foreach($tipos as $t)<option value="{{ $t->id }}" @selected(request('tipo_incidencia_id') == $t->id)>{{ $t->nombre }}</option>@endforeach</select></div>
     <div class="col-md-2"><label class="form-label">Desde</label><input type="date" name="desde" value="{{ request('desde') }}" class="form-control"></div>
     <div class="col-md-2"><label class="form-label">Hasta</label><input type="date" name="hasta" value="{{ request('hasta') }}" class="form-control"></div>
+    @if(request('device_id'))<input type="hidden" name="device_id" value="{{ request('device_id') }}">@endif
     <div class="col-md-2"><button class="btn btn-primary w-100"><i class="bi bi-search me-1"></i>Filtrar</button></div>
 </form>
 <div class="card">

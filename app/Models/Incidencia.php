@@ -10,6 +10,14 @@ class Incidencia extends Model
     protected $casts = ['fecha_inicio' => 'date', 'fecha_fin' => 'date'];
 
     public function empleado() { return $this->belongsTo(Empleado::class)->withTrashed(); }
+
+    /** Filtra por la sucursal y/o el equipo principal del empleado. */
+    public function scopeDeSucursal($q, $sucursalId = null, $deviceId = null)
+    {
+        if (!$sucursalId && !$deviceId) return $q;
+        return $q->whereIn('empleado_id', Empleado::withTrashed()->deSucursal($sucursalId, $deviceId)->select('id'));
+    }
+
     public function tipo() { return $this->belongsTo(TipoIncidencia::class, 'tipo_incidencia_id'); }
     public function usuario() { return $this->belongsTo(User::class, 'user_id'); }
 

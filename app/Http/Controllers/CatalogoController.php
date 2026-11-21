@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Departamento;
 use App\Models\DiaFestivo;
 use App\Models\Puesto;
+use App\Models\Sucursal;
 use App\Models\TipoIncidencia;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -13,6 +14,7 @@ use Illuminate\Validation\Rule;
 class CatalogoController extends Controller
 {
     private const CATALOGOS = [
+        'sucursales' => ['modelo' => Sucursal::class, 'titulo' => 'Sucursales', 'singular' => 'sucursal', 'icono' => 'shop'],
         'departamentos' => ['modelo' => Departamento::class, 'titulo' => 'Departamentos', 'singular' => 'departamento', 'icono' => 'diagram-3'],
         'puestos' => ['modelo' => Puesto::class, 'titulo' => 'Puestos', 'singular' => 'puesto', 'icono' => 'briefcase'],
         'festivos' => ['modelo' => DiaFestivo::class, 'titulo' => 'Días festivos', 'singular' => 'día festivo', 'icono' => 'calendar-heart'],
@@ -37,7 +39,7 @@ class CatalogoController extends Controller
     {
         $cfg = $this->cfg($catalogo);
         $cfg['modelo']::create($this->validar($request, $catalogo));
-        return back()->with('ok', ucfirst($cfg['singular']).' agregado.');
+        return back()->with('ok', 'Registro agregado.');
     }
 
     public function update(Request $request, string $catalogo, int $id)
@@ -45,7 +47,7 @@ class CatalogoController extends Controller
         $cfg = $this->cfg($catalogo);
         $registro = $cfg['modelo']::findOrFail($id);
         $registro->update($this->validar($request, $catalogo, $id));
-        return back()->with('ok', ucfirst($cfg['singular']).' actualizado.');
+        return back()->with('ok', 'Registro actualizado.');
     }
 
     public function destroy(string $catalogo, int $id)
@@ -56,6 +58,9 @@ class CatalogoController extends Controller
             if (method_exists($registro, 'empleados') && $registro->empleados()->exists()) {
                 return back()->with('error', 'No se puede eliminar: tiene empleados asignados. Puedes desactivarlo.');
             }
+            if (method_exists($registro, 'equipos') && $registro->equipos()->exists()) {
+                return back()->with('error', 'No se puede eliminar: tiene equipos asignados. Puedes desactivarla.');
+            }
             if (method_exists($registro, 'incidencias') && $registro->incidencias()->exists()) {
                 return back()->with('error', 'No se puede eliminar: tiene incidencias registradas. Puedes desactivarlo.');
             }
@@ -63,7 +68,7 @@ class CatalogoController extends Controller
         } catch (\Illuminate\Database\QueryException) {
             return back()->with('error', 'No se puede eliminar porque está en uso.');
         }
-        return back()->with('ok', ucfirst($cfg['singular']).' eliminado.');
+        return back()->with('ok', 'Registro eliminado.');
     }
 
     private function validar(Request $request, string $catalogo, ?int $id = null): array

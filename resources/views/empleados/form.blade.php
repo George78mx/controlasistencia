@@ -45,9 +45,13 @@
                         <select name="horario_id" class="form-select"><option value="">Sin horario</option>
                             @foreach($horarios as $d)<option value="{{ $d->id }}" @selected($v('horario_id') == $d->id)>{{ $d->nombre }}</option>@endforeach</select>
                         <div class="form-text">Necesario para calcular retardos y faltas.</div></div>
+                    <div class="col-12"><label class="form-label">Sucursal</label>
+                        <select name="sucursal_id" id="sucursal_id" class="form-select"><option value="">—</option>
+                            @foreach($sucursales as $s)<option value="{{ $s->id }}" @selected($v('sucursal_id') == $s->id)>{{ $s->nombre }}</option>@endforeach</select>
+                        <div class="form-text">Si la dejas vacía, toma la del equipo principal.</div></div>
                     <div class="col-12"><label class="form-label">Equipo principal</label>
-                        <select name="device_id" class="form-select"><option value="">—</option>
-                            @foreach($equipos as $d)<option value="{{ $d->id }}" @selected($v('device_id') == $d->id)>{{ $d->nombre }}</option>@endforeach</select>
+                        <select name="device_id" id="device_id" class="form-select"><option value="">—</option>
+                            @foreach($equipos as $d)<option value="{{ $d->id }}" data-sucursal="{{ $d->sucursal_id }}" @selected($v('device_id') == $d->id)>{{ $d->nombre }}{{ $d->sucursal ? ' · '.$d->sucursal->nombre : '' }}</option>@endforeach</select>
                         <div class="form-text">Las checadas de cualquier equipo cuentan para su asistencia.</div></div>
                     <div class="col-6"><label class="form-label">Fecha de ingreso</label><input type="date" name="fecha_ingreso" value="{{ $v('fecha_ingreso') }}" class="form-control"></div>
                     <div class="col-6"><label class="form-label">Fecha de baja</label><input type="date" name="fecha_baja" value="{{ $v('fecha_baja') }}" class="form-control"></div>
@@ -69,3 +73,12 @@
     </div>
 </form>
 @endsection
+@push('scripts')
+<script>
+// Al elegir el equipo principal, propone su sucursal
+document.getElementById('device_id')?.addEventListener('change', function () {
+    const suc = this.selectedOptions[0]?.dataset.sucursal;
+    if (suc) document.getElementById('sucursal_id').value = suc;
+});
+</script>
+@endpush

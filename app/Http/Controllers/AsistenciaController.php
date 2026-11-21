@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Asistencia;
 use App\Models\Departamento;
 use App\Services\CalculadoraAsistencia;
+use App\Support\SucursalActiva;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -13,16 +14,19 @@ class AsistenciaController extends Controller
     public function index(Request $request)
     {
         $fecha = Carbon::parse($request->fecha ?: now()->toDateString());
+        $suc = SucursalActiva::id();
+        $dev = $request->integer('device_id') ?: null;
 
         $registros = Asistencia::with(['empleado.departamento', 'empleado.puesto', 'incidencia.tipo'])
             ->where('fecha', $fecha->toDateString())
+            ->deSucursal($suc, $dev)
             ->when($request->estatus, fn ($q, $v) => $q->where('estatus', $v))
             ->when($request->departamento_id, fn ($q, $v) => $q->whereHas('empleado', fn ($q) => $q->where('departamento_id', $v)))
             ->when($request->q, fn ($q, $v) => $q->whereHas('empleado', fn ($q) => $q->buscar($v)))
             ->get()
             ->sortBy(fn ($a) => $a->empleado?->nombre_completo)->values();
 
-        $conteo = Asistencia::where('fecha', $fecha->toDateString())->selectRaw('estatus, count(*) total')->groupBy('estatus')->pluck('total', 'estatus');
+        $conteo = Asistencia::deSucursal($suc, $dev)->where('fecha', $fecha->toDateString())->selectRaw('estatus, count(*) total')->groupBy('estatus')->pluck('total', 'estatus');
 
         return view('asistencia.index', [
             'fecha' => $fecha,

@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 class Device extends Model
 {
     protected $fillable = [
-        'nombre', 'ubicacion', 'ip', 'puerto', 'usar_https', 'usuario', 'password', 'activo',
+        'sucursal_id', 'nombre', 'ubicacion', 'ip', 'puerto', 'usar_https', 'usuario', 'password', 'activo',
         'intervalo_minutos', 'modelo', 'numero_serie', 'firmware', 'mac', 'en_linea',
         'ultima_conexion_at', 'ultima_sincronizacion_at', 'descargado_hasta', 'ultimo_error', 'notas',
     ];
@@ -32,6 +32,7 @@ class Device extends Model
         });
     }
 
+    public function sucursal() { return $this->belongsTo(Sucursal::class); }
     public function checadas() { return $this->hasMany(Checada::class); }
     public function logs() { return $this->hasMany(DeviceSyncLog::class)->latest(); }
     public function empleados() { return $this->hasMany(Empleado::class); }

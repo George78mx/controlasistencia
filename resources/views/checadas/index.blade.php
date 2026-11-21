@@ -2,6 +2,7 @@
 @section('title', 'Checadas')
 @section('subtitle', 'Registros descargados de los equipos')
 @section('content')
+@include('partials.filtro-equipos')
 <form class="filters row g-2 align-items-end">
     <div class="col-md-2"><label class="form-label">Desde</label><input type="date" name="desde" value="{{ $desde }}" class="form-control"></div>
     <div class="col-md-2"><label class="form-label">Hasta</label><input type="date" name="hasta" value="{{ $hasta }}" class="form-control"></div>

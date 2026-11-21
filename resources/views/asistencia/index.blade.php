@@ -8,11 +8,12 @@
     @can('asistencia.recalcular')<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#recalcular"><i class="bi bi-arrow-repeat me-1"></i>Recalcular</button>@endcan
 @endsection
 @section('content')
+@include('partials.filtro-equipos')
 <div class="d-flex flex-wrap gap-2 mb-3">
-    <a href="{{ route('asistencia.index', ['fecha' => $fecha->toDateString()]) }}" class="badge-estatus soft-{{ request('estatus') ? 'light' : 'primary' }} text-decoration-none fs-6">Todos {{ $conteo->sum() }}</a>
+    <a href="{{ route('asistencia.index', ['fecha' => $fecha->toDateString()] + request()->only('device_id')) }}" class="badge-estatus soft-{{ request('estatus') ? 'light' : 'primary' }} text-decoration-none fs-6">Todos {{ $conteo->sum() }}</a>
     @foreach(\App\Models\Asistencia::ESTATUS as $k => [$t, $c])
         @if($conteo[$k] ?? 0)
-            <a href="{{ route('asistencia.index', ['fecha' => $fecha->toDateString(), 'estatus' => $k]) }}" class="badge-estatus soft-{{ $c }} text-decoration-none fs-6 {{ request('estatus') === $k ? 'border border-2' : '' }}">{{ $t }} {{ $conteo[$k] }}</a>
+            <a href="{{ route('asistencia.index', ['fecha' => $fecha->toDateString(), 'estatus' => $k] + request()->only('device_id')) }}" class="badge-estatus soft-{{ $c }} text-decoration-none fs-6 {{ request('estatus') === $k ? 'border border-2' : '' }}">{{ $t }} {{ $conteo[$k] }}</a>
         @endif
     @endforeach
 </div>
@@ -25,6 +26,7 @@
         <select name="estatus" class="form-select"><option value="">Todos</option>
             @foreach(\App\Models\Asistencia::ESTATUS as $k => [$t])<option value="{{ $k }}" @selected(request('estatus') === $k)>{{ $t }}</option>@endforeach</select></div>
     <div class="col-md-3"><label class="form-label">Empleado</label><input name="q" value="{{ request('q') }}" class="form-control"></div>
+    @if(request('device_id'))<input type="hidden" name="device_id" value="{{ request('device_id') }}">@endif
     <div class="col-md-1"><button class="btn btn-primary w-100"><i class="bi bi-search"></i></button></div>
 </form>
 <div class="card">
