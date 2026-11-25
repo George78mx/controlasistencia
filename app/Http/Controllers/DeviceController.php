@@ -53,9 +53,15 @@ class DeviceController extends Controller
     public function update(Request $request, Device $equipo)
     {
         $data = $this->validar($request, false);
-        if (empty($data['password'])) unset($data['password']);
+        $nuevaPassword = $data['password'] ?? null;
+        unset($data['password']);
         $sucursalAnterior = $equipo->sucursal_id;
         $equipo->update($data);
+        if ($nuevaPassword) {
+            // Se guarda sin compararla con la anterior: si la base viene de otra instalación
+            // (otra APP_KEY), la anterior no se puede descifrar y Eloquent fallaría al compararla.
+            $equipo->guardarPassword($nuevaPassword);
+        }
 
         $msg = 'Equipo actualizado.';
         if ($sucursalAnterior != $equipo->sucursal_id && $equipo->sucursal_id) {

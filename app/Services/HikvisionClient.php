@@ -19,7 +19,7 @@ class HikvisionClient
 
     private function http(): PendingRequest
     {
-        return Http::withDigestAuth($this->device->usuario, (string) $this->device->password)
+        return Http::withDigestAuth($this->device->usuario, $this->device->passwordDescifrada())
             ->timeout(Setting::int('timeout_segundos', 20))
             ->connectTimeout(8)
             ->withoutVerifying()

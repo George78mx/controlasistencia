@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Str;
+use RuntimeException;
 
 class Device extends Model
 {
@@ -36,6 +39,24 @@ class Device extends Model
     public function checadas() { return $this->hasMany(Checada::class); }
     public function logs() { return $this->hasMany(DeviceSyncLog::class)->latest(); }
     public function empleados() { return $this->hasMany(Empleado::class); }
+
+    /** Guarda la contraseña cifrada con la APP_KEY actual sin leer la anterior. */
+    public function guardarPassword(string $password): void
+    {
+        $cifrada = Crypt::encryptString($password);
+        static::whereKey($this->id)->update(['password' => $cifrada]);
+        $this->setRawAttributes(array_merge($this->getAttributes(), ['password' => $cifrada]), true);
+    }
+
+    /** Contraseña en claro; si se cifró con otra APP_KEY explica cómo corregirlo. */
+    public function passwordDescifrada(): string
+    {
+        try {
+            return (string) $this->password;
+        } catch (DecryptException) {
+            throw new RuntimeException('La contraseña de este equipo se guardó con otra llave (APP_KEY), por ejemplo al copiar la base de datos de otra instalación. Edita el equipo y vuelve a capturar su contraseña.');
+        }
+    }
 
     public function baseUrl(): string
     {
