@@ -22,6 +22,7 @@ class ConfiguracionController extends Controller
             'dias_carga_inicial' => ['required', 'integer', 'min:0', 'max:365'],
             'timeout_segundos' => ['required', 'integer', 'min:5', 'max:120'],
             'retardos_por_falta' => ['required', 'integer', 'min:0', 'max:30'],
+            'ventana_salida_minutos' => ['required', 'integer', 'min:0', 'max:720'],
             'checada_minima_minutos' => ['required', 'integer', 'min:0', 'max:120'],
         ]);
         foreach ($data as $k => $v) Setting::put($k, $v);

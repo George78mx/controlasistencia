@@ -89,6 +89,19 @@ class CalculadoraAsistencia
         $minimo = Setting::int('checada_minima_minutos', 5);
         $salida = ($entrada && $ultima && $entrada->diffInMinutes($ultima) >= $minimo) ? $ultima : null;
 
+        // Las checadas intermedias no son salida. Mientras el día sigue abierto solo se acepta como
+        // salida la última checada si ya es cercana (o posterior) a la salida programada; si es más
+        // temprana, se espera al cierre del día para saber si de verdad fue la última.
+        $salidaTemprana = false;
+        if ($salida) {
+            $desdeSalida = $salProg?->copy()->subMinutes(Setting::int('ventana_salida_minutos', 60));
+            $salidaTemprana = $desdeSalida !== null && $salida < $desdeSalida;
+            if (($desdeSalida === null || $salidaTemprana) && now() <= $fin) {
+                $salida = null;
+                $salidaTemprana = false;
+            }
+        }
+
         $incidencia = ($incidencias ?? Incidencia::with('tipo')->where('empleado_id', $empleado->id)
                 ->where('fecha_inicio', '<=', $fechaStr)->where('fecha_fin', '>=', $fechaStr)->get())
             ->first(fn ($i) => $i->fecha_inicio->toDateString() <= $fechaStr && $i->fecha_fin->toDateString() >= $fechaStr);
@@ -143,6 +156,9 @@ class CalculadoraAsistencia
             }
             if (!$salida && now() > $salProg->copy()->addHours(2)) {
                 $datos['observaciones'] = 'Sin registro de salida';
+            }
+            if ($salidaTemprana) {
+                $datos['observaciones'] = 'Salida muy anticipada: verificar posible omisión de salida';
             }
         }
 

@@ -16,6 +16,7 @@ class Setting extends Model
         'dias_carga_inicial'    => ['7', 'Días hacia atrás que se descargan la primera vez que se conecta un equipo'],
         'timeout_segundos'      => ['20', 'Tiempo máximo de espera de respuesta del equipo'],
         'retardos_por_falta'    => ['3', 'Número de retardos que equivalen a una falta (0 = no aplica)'],
+        'ventana_salida_minutos'=> ['60', 'Minutos antes de la salida programada desde los que una checada ya se toma como salida el mismo día'],
         'checada_minima_minutos'=> ['5', 'Checadas repetidas dentro de estos minutos se consideran la misma'],
     ];
 

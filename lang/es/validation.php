@@ -102,6 +102,7 @@ return [
         'foto' => 'fotografía',
         'archivo' => 'archivo',
         'descripcion' => 'descripción',
+        'ventana_salida_minutos' => 'aceptar salida',
         'clave' => 'clave',
         'fecha' => 'fecha',
     ],

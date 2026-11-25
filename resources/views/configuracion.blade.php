@@ -25,6 +25,8 @@
                     <div class="col-12"><label class="form-label">Nombre de la empresa</label><input name="empresa_nombre" value="{{ old('empresa_nombre', $valores['empresa_nombre']) }}" class="form-control" required></div>
                     <div class="col-md-6"><label class="form-label">Retardos que equivalen a una falta</label><input type="number" min="0" name="retardos_por_falta" value="{{ old('retardos_por_falta', $valores['retardos_por_falta']) }}" class="form-control" required>
                         <div class="form-text">0 = no se convierten.</div></div>
+                    <div class="col-12"><label class="form-label">Aceptar salida desde (minutos antes de la hora de salida)</label><input type="number" min="0" max="720" name="ventana_salida_minutos" value="{{ old('ventana_salida_minutos', $valores['ventana_salida_minutos']) }}" class="form-control" required>
+                        <div class="form-text">Antes de ese momento las checadas intermedias no se muestran como salida. Al cerrar el día se toma siempre la última checada.</div></div>
                     <div class="col-md-6"><label class="form-label">Checadas repetidas (minutos)</label><input type="number" min="0" name="checada_minima_minutos" value="{{ old('checada_minima_minutos', $valores['checada_minima_minutos']) }}" class="form-control" required>
                         <div class="form-text">Si la última checada está a menos de estos minutos de la primera, no se toma como salida.</div></div>
                     <div class="col-12 small text-muted-2"><i class="bi bi-info-circle me-1"></i>La tolerancia y los minutos para falta se definen en cada <a href="{{ route('horarios.index') }}">horario</a>.</div>
